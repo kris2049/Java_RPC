@@ -1,17 +1,17 @@
 package server;
 
-
 import core.RpcRequest;
 import core.RpcResponse;
 import utils.serialize.Serializer;
 import utils.SocketUtils;
-import utils.serialize.protoStuff.ProtoStuffSerializer;
+
 
 import java.io.IOException;
+
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,23 +39,22 @@ public class RpcServer {
     }
 
     public void start() throws IOException {
-        try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
-            serverSocketChannel.socket().bind(new InetSocketAddress(port));
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("RPCServer started on port " + port);
 
             while(true){
-                try(SocketChannel socketChannel = serverSocketChannel.accept()){
+                try(Socket socket = serverSocket.accept()){
                     // 接收客户端请求
-                    byte[] request = SocketUtils.receiveRequest(socketChannel);
+                    byte[] request = SocketUtils.receiveRequest(socket);
 
 
                     // 将请求反序列化
                     RpcRequest rpcRequest = serializer.deserialize(request, RpcRequest.class);
 
-//                    System.out.println(rpcRequest.getClassName());
-//                    System.out.println(rpcRequest.getMethodName());
-//                    System.out.println(Arrays.toString(rpcRequest.getParameterTypes()));
-//                    System.out.println(Arrays.toString(rpcRequest.getParams()));
+                    System.out.println(rpcRequest.getClassName());
+                    System.out.println(rpcRequest.getMethodName());
+                    System.out.println(Arrays.toString(rpcRequest.getParameterTypes()));
+                    System.out.println(Arrays.toString(rpcRequest.getParams()));
 
 
                     // 处理请求
@@ -66,7 +65,7 @@ public class RpcServer {
                     byte[] response = serializer.serialize(rpcResponse);
 
                     // 发送响应给客户端
-                    SocketUtils.sendResponse(socketChannel, response);
+                    SocketUtils.sendResponse(socket, response);
                 }catch (IOException e){
                     System.out.println("Error handling client request: "+e.getMessage());
                 }
@@ -87,6 +86,8 @@ public class RpcServer {
 
             // 调用方法并获取结果
             Object result = method.invoke(service, rpcRequest.getParams());
+
+            System.out.println(result);
 
             return new RpcResponse(result,null);
         }catch (Exception e){
