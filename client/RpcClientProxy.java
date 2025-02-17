@@ -2,12 +2,14 @@ package client;
 
 import core.RpcRequest;
 import core.RpcResponse;
-import utils.serialization.SerializationUtils;
+import utils.serialize.Serializer;
 import utils.SocketUtils;
+import utils.serialize.protoStuff.ProtoStuffSerializer;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 
 /**
  * 客户端动态代理，为服务接口生成代理对象，实现远程调用。
@@ -15,10 +17,12 @@ import java.lang.reflect.Proxy;
 public class RpcClientProxy {
     private final String host;
     private final int port;
+    private final Serializer serializer;
 
-    public RpcClientProxy(String host, int port) {
+    public RpcClientProxy(String host, int port, Serializer serializer) {
         this.host = host;
         this.port = port;
+        this.serializer = serializer;
     }
 
     // 获得服务类的代理
@@ -39,16 +43,18 @@ public class RpcClientProxy {
                         );
 
                         // 序列化请求对象
-                        String request = SerializationUtils.serialize(rpcRequest);
+                        byte[] request = serializer.serialize(rpcRequest);
+
+                        System.out.println(Arrays.toString(request));
 
                         // 发送请求并接收响应
-                        String response = SocketUtils.sendRequest(host,port,request);
+                        byte[] response = SocketUtils.sendRequest(host,port,request);
 
-                        System.out.println(response);
+                        System.out.println(Arrays.toString(response));
 
 
                         // 反序列化响应对象
-                        RpcResponse rpcResponse = SerializationUtils.deserialize(response,RpcResponse.class);
+                        RpcResponse rpcResponse = serializer.deserialize(response,RpcResponse.class);
 
                         // 处理异常
                         if (rpcResponse.getError() != null) {

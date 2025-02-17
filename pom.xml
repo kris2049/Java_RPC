@@ -52,15 +52,27 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>4.29.3</version>
+            <version>4.28.1</version>
         </dependency>
 
         <!--  proto 与 Json 互转会用到-->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java-util</artifactId>
-            <version>4.29.3</version>
+            <version>4.28.1</version>
         </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>1.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>1.6.0</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>
@@ -73,9 +85,6 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
-                    <compileSourceRoots>
-                        <compileSourceRoot>${project.build.directory}/</compileSourceRoot>
-                    </compileSourceRoots>
                 </configuration>
             </plugin>
         </plugins>

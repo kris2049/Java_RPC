@@ -3,14 +3,16 @@ package server;
 
 import core.RpcRequest;
 import core.RpcResponse;
-import utils.serialization.SerializationUtils;
+import utils.serialize.Serializer;
 import utils.SocketUtils;
+import utils.serialize.protoStuff.ProtoStuffSerializer;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,13 +21,15 @@ import java.util.Map;
  */
 public class RpcServer {
     private final int port;
+    private final Serializer serializer;
 
     // 创建服务名与服务的映射表
     private final Map<String, Object> serviceMap = new HashMap<>();
 
     // 构造方法
-    public RpcServer(int port) {
+    public RpcServer(int port, Serializer serializer) {
         this.port = port;
+        this.serializer = serializer;
     }
 
     // 服务注册，传入服务接口类和实现类
@@ -42,11 +46,16 @@ public class RpcServer {
             while(true){
                 try(SocketChannel socketChannel = serverSocketChannel.accept()){
                     // 接收客户端请求
-                    String request = SocketUtils.receiveRequest(socketChannel);
+                    byte[] request = SocketUtils.receiveRequest(socketChannel);
 
 
                     // 将请求反序列化
-                    RpcRequest rpcRequest = SerializationUtils.deserialize(request, RpcRequest.class);
+                    RpcRequest rpcRequest = serializer.deserialize(request, RpcRequest.class);
+
+//                    System.out.println(rpcRequest.getClassName());
+//                    System.out.println(rpcRequest.getMethodName());
+//                    System.out.println(Arrays.toString(rpcRequest.getParameterTypes()));
+//                    System.out.println(Arrays.toString(rpcRequest.getParams()));
 
 
                     // 处理请求
@@ -54,7 +63,7 @@ public class RpcServer {
 
 
                     // 将响应对象序列化
-                    String response = SerializationUtils.serialize(rpcResponse);
+                    byte[] response = serializer.serialize(rpcResponse);
 
                     // 发送响应给客户端
                     SocketUtils.sendResponse(socketChannel, response);

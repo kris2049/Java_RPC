@@ -11,11 +11,11 @@ import java.util.Arrays;
  */
 public class SocketUtils {
     // 客户端建立Socket链接并发送请求，接受响应
-    public static String sendRequest(String host, int port, String request) throws IOException {
+    public static byte[] sendRequest(String host, int port, byte[] request) throws IOException {
         // 建立socket连接，使用host和端口
         try (SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(host, port))) {
             // 创建缓存区，将序列化之后的字符串请求打包到缓存区
-            ByteBuffer buffer = ByteBuffer.wrap(request.getBytes());
+            ByteBuffer buffer = ByteBuffer.wrap(request);
             // 将缓存区的内容写入socket
             socketChannel.write(buffer);
 
@@ -29,12 +29,12 @@ public class SocketUtils {
             buffer.get(responseBytes);
 
 
-            return new String(responseBytes);
+            return responseBytes;
         }
     }
 
     // 服务端接收客户端请求
-    public static String receiveRequest(SocketChannel socketChannel) throws IOException {
+    public static byte[] receiveRequest(SocketChannel socketChannel) throws IOException {
         // 创建一个缓存区
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         // socket写入数据到缓存区
@@ -48,12 +48,13 @@ public class SocketUtils {
         // 将缓存区的数据写入字节数组
         buffer.get(requestBytes);
 
-        return new String(requestBytes);
+        return requestBytes;
     }
 
     // 服务端发送响应给客户端
-    public static void sendResponse(SocketChannel socketChannel, String response) throws IOException {
-        ByteBuffer buffer = ByteBuffer.wrap(response.getBytes());
+    public static void sendResponse(SocketChannel socketChannel, byte[] response) throws IOException {
+        ByteBuffer buffer = ByteBuffer.wrap(response);
+//        System.out.println(Arrays.toString(response));
         socketChannel.write(buffer);
     }
 }
